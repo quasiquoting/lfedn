@@ -1,10 +1,10 @@
-* lfedn – edn (extensible data notation) parser for LFE
-lfeden is a parser for the [[https://github.com/edn-format/edn][edn specification]], implemented using [[http://www.erlang.org/doc/man/leex.html][leex]] and [[http://www.erlang.org/doc/man/yecc.html][yecc]]
+* lfedn – edn parser for LFE
+=lfeden= is a parser for the [[https://github.com/edn-format/edn][edn specification]], implemented using [[http://www.erlang.org/doc/man/leex.html][leex]] and [[http://www.erlang.org/doc/man/yecc.html][yecc]]
 and tested with [[http://www.erlang.org/doc/man/eunit.html][eunit]].
 
-This is a low-level parser that parses edn into LFE data structures. You have to
-decide on how, specifically, to represent them, since each user may have a
-different need. There is no imposition here.
+This is a low-level parser from edn to LFE data structures. You have to decide
+on how, specifically, to represent them, since each user may have a different
+need. There is no imposition here.
 
 ** Build
 #+BEGIN_SRC sh
