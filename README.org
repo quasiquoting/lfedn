@@ -17,124 +17,207 @@ $ rebar3 eunit
 #+END_SRC
 
 ** Usage
+   :PROPERTIES:
+   :exports:  code
+   :results:  none
+   :END:
+#+BEGIN_SRC emacs-lisp :exports none :results silent
+;;; ob-lfe.el --- org-babel functions for lfe evaluation
+
+;; Copyright (C) 2015 ZHOU Feng
+
+;; Author: ZHOU Feng <zf.pascal@gmail.com>
+;; URL: http://github.com/zweifisch/ob-lfe
+;; Keywords: org babel lfe lisp erlang
+;; Version: 0.0.1
+;; Created: 1st July 2015
+;; Package-Requires: ((org "8"))
+
+;;; Commentary:
+;;
+;; org-babel functions for lfe evaluation
+;;
+
+;;; Code:
+(require 'ob)
+(require 'comint)
+
+(defvar org-babel-lfe-eoe "org-babel-lfe-eoe")
+
+(defun org-babel-execute:lfe (body params)
+  (let ((session (cdr (assoc :session params))))
+    (ob-lfe-eval session body)))
+
+(defun ob-lfe-eval (session body)
+  (ob-lfe-ensure-session session)
+  (let ((result (ob-lfe-eval-in-repl session body))
+        (num-lines (length (split-string body "[\r\n]"))))
+    ;; (message (prin1-to-string result))
+    (if (stringp result) (message result)
+      (replace-regexp-in-string
+       "\r\n" "\n"
+       (mapconcat 'identity
+                  (nthcdr (+ 1 num-lines) (ob-lfe-trim-eoe result)) "")))))
+
+(defun ob-lfe-trim-eoe (lines)
+  (while (not (string-match "^> \"org-babel-lfe-eoe\"" (car (last lines))))
+    (setq lines (butlast lines)))
+  (butlast lines))
+
+(defun ob-lfe-eval-in-repl (session body)
+  (let ((buffer (format "*lfe-%s*" session))
+        (eoe (format "%S" org-babel-lfe-eoe)))
+    (with-timeout (3 "comint timeout")
+      (org-babel-comint-with-output
+          (buffer eoe)
+        (dolist (line (list body eoe))
+          (insert (org-babel-chomp line))
+          (comint-send-input nil t)
+          (sleep-for 0 5))))))
+
+
+;; Code path modified by Eric Bailey for rebar3.
+(defun ob-lfe-ensure-session (session)
+  (unless (org-babel-comint-buffer-livep (format "*lfe-%s*" session))
+    (with-current-buffer (apply 'make-comint (format "lfe-%s" session) "env" nil
+                                "lfe" "-env" "TERM" "vt100"
+                                "-pa" (file-expand-wildcards
+                                       "_build/default/lib/*/ebin"))
+      (setq comint-process-echoes t))
+    (ob-lfe-eval-in-repl session "")
+    (sleep-for 0 500)))
+
+(provide 'ob-lfe)
+;;; ob-lfe.el ends here
+#+END_SRC
+
 *** ~parse-str/1~
-#+BEGIN_SRC lfe
+    :PROPERTIES:
+    :session:  parse-str
+    :END:
+#+BEGIN_SRC lfe :exports both :results value code
 (lfedn:parse-str "{}")
 #+END_SRC
-#+BEGIN_EXAMPLE
-#(ok #(map []))
-#+END_EXAMPLE
-
+#+RESULTS:
 #+BEGIN_SRC lfe
+#(ok #(map ()))
+#+END_SRC
+
+#+BEGIN_SRC lfe :exports both :results value code
 (lfedn:parse-str "1")
 #+END_SRC
-#+BEGIN_EXAMPLE
-#(ok 1)
-#+END_EXAMPLE
-
+#+RESULTS:
 #+BEGIN_SRC lfe
+#(ok 1)
+#+END_SRC
+
+#+BEGIN_SRC lfe :exports both :results value code
 (lfedn:parse-str "true")
 #+END_SRC
-#+BEGIN_EXAMPLE
-#(ok true)
-#+END_EXAMPLE
-
+#+RESULTS:
 #+BEGIN_SRC lfe
+#(ok true)
+#+END_SRC
+
+#+BEGIN_SRC lfe :exports both :results value code
 (lfedn:parse-str "nil")
 #+END_SRC
-#+BEGIN_EXAMPLE
-#(ok undefined)
-#+END_EXAMPLE
-
+#+RESULTS:
 #+BEGIN_SRC lfe
+#(ok nil)
+#+END_SRC
+
+#+BEGIN_SRC lfe :exports both :results value code
 (lfedn:parse-str "[1 true nil]")
 #+END_SRC
-#+BEGIN_EXAMPLE
-#(ok #(vector [1 true undefined])}})
-#+END_EXAMPLE
-
+#+RESULTS:
 #+BEGIN_SRC lfe
+#(ok #(vector (1 true nil)))
+#+END_SRC
+
+#+BEGIN_SRC lfe :exports both :results value code
 (lfedn:parse-str "(1 true nil :foo)")
 #+END_SRC
-#+BEGIN_EXAMPLE
-#(ok [1 true undefined foo])
-#+END_EXAMPLE
-
+#+RESULTS:
 #+BEGIN_SRC lfe
+#(ok (1 true nil foo))
+#+END_SRC
+
+#+BEGIN_SRC lfe :exports both :results value code
 (lfedn:parse-str "(1 true nil :foo ns/foo)")
 #+END_SRC
-#+BEGIN_EXAMPLE
-#(ok [1 true undefined foo #(symbol ns/foo)])
-#+END_EXAMPLE
-
+#+RESULTS:
 #+BEGIN_SRC lfe
+#(ok (1 true nil foo #(symbol ns/foo)))
+#+END_SRC
+
+#+BEGIN_SRC lfe :exports both :results value code
 (lfedn:parse-str "#{1 true nil :foo ns/foo}")
 #+END_SRC
-#+BEGIN_EXAMPLE
-#(ok #(set [1 true undefined foo #(symbol ns/foo)]))
-#+END_EXAMPLE
-
+#+RESULTS:
 #+BEGIN_SRC lfe
+#(ok #(set (1 true nil foo #(symbol ns/foo))))
+#+END_SRC
+
+#+BEGIN_SRC lfe :exports both :results value code
 (lfedn:parse-str "#myapp/Person {:first \"Fred\" :last \"Mertz\"}")
 #+END_SRC
-#+BEGIN_EXAMPLE
-#(ok #(tag myapp/Person
-           #(map [#(first "Fred") #(last "Mertz")])))
-#+END_EXAMPLE
-
+#+RESULTS:
 #+BEGIN_SRC lfe
+#(ok #(tag myapp/Person #(map (#(first #"Fred") #(last #"Mertz")))))
+#+END_SRC
+
+#+BEGIN_SRC lfe :exports both :results value code
 (lfedn:parse-str "#{1 true #_ nil :foo ns/foo}")
 #+END_SRC
-#+BEGIN_EXAMPLE
-#(ok #(set [1 true #(ignore undefined) foo #(symbol ns/foo)]))
-#+END_EXAMPLE
-
+#+RESULTS:
 #+BEGIN_SRC lfe
+#(ok #(set (1 true #(ignore nil) foo #(symbol ns/foo))))
+#+END_SRC
+
+#+BEGIN_SRC lfe :exports both :results value code
 (lfedn:parse-str "#{1 true #_ 42 :foo ns/foo}")
 #+END_SRC
-#+BEGIN_EXAMPLE
-#(ok #(set [1 true #(ignore 42) foo #(symbol ns/foo)]))
-#+END_EXAMPLE
+#+RESULTS:
+#+BEGIN_SRC lfe
+#(ok #(set (1 true #(ignore 42) foo #(symbol ns/foo))))
+#+END_SRC
 
 *** ~to-string/1~
-#+BEGIN_SRC lfe
+    :PROPERTIES:
+    :session:  to-string
+    :END:
+#+BEGIN_SRC lfe :exports both :results value code
 (set `#(ok ,result) (lfedn:parse-str "{:a 42}"))
 #+END_SRC
-#+BEGIN_EXAMPLE
-#(ok #(map [#(a 42)]))
-#+END_EXAMPLE
-
-#+BEGIN_SRC lfe :exports both
-(lfe_io:format("~s~n" `(,(lfedn:to-string result))))
+#+RESULTS:
+#+BEGIN_SRC lfe
+#(ok #(map (#(a 42))))
 #+END_SRC
-#+BEGIN_EXAMPLE
+
+#+BEGIN_SRC lfe :exports both :results value code
+(lfe_io:format "~s~n" `(,(lfedn:to-string result)))
+#+END_SRC
+#+RESULTS:
+#+BEGIN_SRC lfe
 {:a 42}
 ok
-#+END_EXAMPLE
+#+END_SRC
 
 *** ~to-lfe/1~
-#+BEGIN_SRC lfe
+    :PROPERTIES:
+    :session:  to-lfe
+    :END:
+#+BEGIN_SRC lfe :exports both :results value codennn
 (lfedn:to-lfe (element 2 (lfedn:parse-str "[1  nil  :nil  \"asd\"]")))
 #+END_SRC
-#+BEGIN_EXAMPLE
-[1 undefined undefined #"asd"]
-#+END_EXAMPLE
+#+RESULTS:
+#+BEGIN_SRC lfe
+(1 nil nil #"asd")
+#+END_SRC
 
 ** API
-*** ~parse-str/1~
-Parse an edn string into an LFE data structure, maintaining all the details from
-the original edn.
-
-*** ~to-string/1~
-Convert the result from ~parse-str/1~ into a edn string.
-
-*** ~to-lfe/1~
-Convert the result from ~parse-str/1~ into an LFE-friendly version.
-
-*** ~to-lfe/2~
-Like ~to-lfe/1~, but given property list of the form ~[#(tag (lambda (tag value
-other-handlers) ...)) ...])~ as the second argument, call ~(handler tag val
-handlers)~ where ~(= handler (proplists:get_value tag handlers))~.
+[[http://quasiquoting.org/lfedn][Documentation]]
 
 ** Type Mappings
 | edn                     | LFE                                          |
@@ -153,8 +236,7 @@ handlers)~ where ~(= handler (proplists:get_value tag handlers))~.
 | tagged literal          | tagged tuple ⇒ ~`#(tag ,symbol ,value)~      |
 | vector                  | tagged list ⇒ ~#(vector [...])~              |
 
-[fn:keyword-nil] Although keyword ↦ atom and ~nil~ ↦ ~undefined~, ~:nil~ ↦
-~#(keyword nil)~.
+[fn:keyword-nil] Although keyword ↦ atom, ~:nil~ ↦ ~#(keyword nil)~.
 [fn:set-uniqueness] Uniqueness is not checked at parse time.
 
 ** To LFE Mappings
@@ -171,7 +253,7 @@ transforming again. The default mappings are:
 | keyword        | atom                                                 |
 | list           | list                                                 |
 | map            | [[http://www.erlang.org/doc/man/dict.html][dict]]                                                 |
-| ~nil~ (symbol) | ~undefined~ (atom)                                   |
+| ~nil~ (symbol) | ~nil~ (atom)                                         |
 | set            | [[http://www.erlang.org/doc/man/sets.html][set]]                                                  |
 | string         | binary string                                        |
 | symbol         | atom                                                 |
