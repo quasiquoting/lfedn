@@ -1,4 +1,4 @@
-* lfedn – edn parser for LFE
+* lfedn – edn ↔ lfe
 =lfeden= is a parser for the [[https://github.com/edn-format/edn][edn specification]], implemented using [[http://www.erlang.org/doc/man/leex.html][leex]] and [[http://www.erlang.org/doc/man/yecc.html][yecc]]
 and tested with [[http://www.erlang.org/doc/man/eunit.html][eunit]].
 
