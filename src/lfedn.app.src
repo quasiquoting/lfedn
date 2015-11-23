@@ -1,0 +1,8 @@
+%% -*- erlang -*-
+{application, lfedn,
+ [{description,  "edn (extensible data notation) parser for LFE"},
+  {vsn,          {cmd, "echo `cat VERSION`"}},
+  {modules,      [erldn]},
+  {registered,   []},
+  {applications, [kernel, stdlib]},
+  {env,          []}]}.

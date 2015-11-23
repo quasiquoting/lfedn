@@ -1,4 +1,25 @@
-.eunit/
-ebin/
+## -*- conf -*-
+.rebar3
+_*
+.eunit
+*.o
+*.beam
+*.plt
+*.swp
+*.swo
+.erlang.cookie
+ebin
+log
+erl_crash.dump
+.rebar
+_rel
+_deps
+_plugins
+_tdeps
+logs
+_build
+rebar.lock
+.DS_Store
+
 src/erldn_lexer.erl
 src/erldn_parser.erl

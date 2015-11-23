@@ -4,37 +4,37 @@
 lex_str(Str) -> erldn_lexer:string(Str).
 
 parse_str(Str) ->
-    case lex_str(Str) of
-        {ok, Tokens, _} ->
-            case erldn_parser:parse(Tokens) of
-                {ok, Tree}    -> {ok, Tree};
-                {ok, Tree, _Warns} -> {ok, Tree};
-                {error, Error} -> {error, Error, nil};
-                {error, Warns, Errors} -> {error, Errors, Warns}
-            end;
-        Error -> Error
-    end.
+  case lex_str(Str) of
+    {ok, Tokens, _} ->
+      case erldn_parser:parse(Tokens) of
+        {ok, Tree}    -> {ok, Tree};
+        {ok, Tree, _Warns} -> {ok, Tree};
+        {error, Error} -> {error, Error, nil};
+        {error, Warns, Errors} -> {error, Errors, Warns}
+      end;
+    Error -> Error
+  end.
 
 keyvals_to_string(Items) -> keyvals_to_string(Items, []).
 
 keyvals_to_string([], Accum) -> lists:reverse(Accum);
-keyvals_to_string([{K, V}], Accum) -> 
-    keyvals_to_string([], [to_string(V), " ", to_string(K)|Accum]);
+keyvals_to_string([{K, V}], Accum) ->
+  keyvals_to_string([], [to_string(V), " ", to_string(K)|Accum]);
 keyvals_to_string([{K, V}|T], Accum) ->
-    keyvals_to_string(T, [" ", to_string(V), " ", to_string(K)|Accum]).
+  keyvals_to_string(T, [" ", to_string(V), " ", to_string(K)|Accum]).
 
 items_to_string(Items) -> items_to_string(Items, []).
 
 items_to_string([], Accum) -> lists:reverse(Accum);
-items_to_string([H], Accum) -> 
-    items_to_string([], [to_string(H)|Accum]);
+items_to_string([H], Accum) ->
+  items_to_string([], [to_string(H)|Accum]);
 items_to_string([H|T], Accum) ->
-    items_to_string(T, [(to_string(H) ++ " ")|Accum]).
+  items_to_string(T, [(to_string(H) ++ " ")|Accum]).
 
 to_string(Edn) -> lists:reverse(to_string(Edn, [])).
 
 to_string(Value, Accum) when is_binary(Value) ->
-    ["\"", escape_string(binary_to_list(Value)), "\""|Accum];
+  ["\"", escape_string(binary_to_list(Value)), "\""|Accum];
 to_string({symbol, Symbol}, Accum) -> [atom_to_list(Symbol)|Accum];
 to_string({keyword, nil}, Accum) -> [":nil"|Accum];
 to_string({char, C}, Accum) -> [["\\"|[C]]|Accum];
@@ -69,7 +69,7 @@ map_escaped_char(Char) ->
   end.
 
 key_vals_to_erlang({Key, Val}, Handlers) ->
-    {to_erlang(Key, Handlers), to_erlang(Val, Handlers)}.
+  {to_erlang(Key, Handlers), to_erlang(Val, Handlers)}.
 
 to_erlang(Val) -> to_erlang(Val, []).
 
@@ -78,17 +78,17 @@ to_erlang({keyword, nil}, _Handlers) -> nil;
 to_erlang({vector, Items}, Handlers) -> to_erlang(Items, Handlers);
 to_erlang({set, Items}, Handlers) -> sets:from_list(to_erlang(Items, Handlers));
 to_erlang({map, Kvs}, Handlers) ->
-    dict:from_list(lists:map(fun (V) -> key_vals_to_erlang(V, Handlers) end, Kvs));
+  dict:from_list(lists:map(fun (V) -> key_vals_to_erlang(V, Handlers) end, Kvs));
 to_erlang(Val, Handlers) when is_list(Val) ->
-    lists:map(fun (V) -> to_erlang(V, Handlers) end, Val);
+  lists:map(fun (V) -> to_erlang(V, Handlers) end, Val);
 to_erlang({tag, Tag, Val}, Handlers) ->
-    Result = lists:keyfind(Tag, 1, Handlers),
+  Result = lists:keyfind(Tag, 1, Handlers),
 
-    if
-        Result == false -> throw({handler_not_found_for_tag, Tag});
-        true ->
-            {_, Handler} = Result,
-            Handler(Tag, Val, Handlers)
-    end;
+  if
+    Result == false -> throw({handler_not_found_for_tag, Tag});
+    true ->
+      {_, Handler} = Result,
+      Handler(Tag, Val, Handlers)
+  end;
 
 to_erlang(Val, _Handlers) -> Val.

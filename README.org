@@ -1,0 +1,185 @@
+* lfedn – edn (extensible data notation) parser for LFE
+lfeden is a parser for the [[https://github.com/edn-format/edn][edn specification]], implemented using [[http://www.erlang.org/doc/man/leex.html][leex]] and [[http://www.erlang.org/doc/man/yecc.html][yecc]]
+and tested with [[http://www.erlang.org/doc/man/eunit.html][eunit]].
+
+This is a low-level parser that parses edn into LFE data structures. You have to
+decide on how, specifically, to represent them, since each user may have a
+different need. There is no imposition here.
+
+** Build
+#+BEGIN_SRC sh
+$ rebar3 compile
+#+END_SRC
+
+** Test
+#+BEGIN_SRC sh
+$ rebar3 eunit
+#+END_SRC
+
+** Usage
+*** ~parse-str/1~
+#+BEGIN_SRC lfe
+(lfedn:parse-str "{}")
+#+END_SRC
+#+BEGIN_EXAMPLE
+#(ok #(map []))
+#+END_EXAMPLE
+
+#+BEGIN_SRC lfe
+(lfedn:parse-str "1")
+#+END_SRC
+#+BEGIN_EXAMPLE
+#(ok 1)
+#+END_EXAMPLE
+
+#+BEGIN_SRC lfe
+(lfedn:parse-str "true")
+#+END_SRC
+#+BEGIN_EXAMPLE
+#(ok true)
+#+END_EXAMPLE
+
+#+BEGIN_SRC lfe
+(lfedn:parse-str "nil")
+#+END_SRC
+#+BEGIN_EXAMPLE
+#(ok undefined)
+#+END_EXAMPLE
+
+#+BEGIN_SRC lfe
+(lfedn:parse-str "[1 true nil]")
+#+END_SRC
+#+BEGIN_EXAMPLE
+#(ok #(vector [1 true undefined])}})
+#+END_EXAMPLE
+
+#+BEGIN_SRC lfe
+(lfedn:parse-str "(1 true nil :foo)")
+#+END_SRC
+#+BEGIN_EXAMPLE
+#(ok [1 true undefined foo])
+#+END_EXAMPLE
+
+#+BEGIN_SRC lfe
+(lfedn:parse-str "(1 true nil :foo ns/foo)")
+#+END_SRC
+#+BEGIN_EXAMPLE
+#(ok [1 true undefined foo #(symbol ns/foo)])
+#+END_EXAMPLE
+
+#+BEGIN_SRC lfe
+(lfedn:parse-str "#{1 true nil :foo ns/foo}")
+#+END_SRC
+#+BEGIN_EXAMPLE
+#(ok #(set [1 true undefined foo #(symbol ns/foo)]))
+#+END_EXAMPLE
+
+#+BEGIN_SRC lfe
+(lfedn:parse-str "#myapp/Person {:first \"Fred\" :last \"Mertz\"}")
+#+END_SRC
+#+BEGIN_EXAMPLE
+#(ok #(tag myapp/Person
+           #(map [#(first "Fred") #(last "Mertz")])))
+#+END_EXAMPLE
+
+#+BEGIN_SRC lfe
+(lfedn:parse-str "#{1 true #_ nil :foo ns/foo}")
+#+END_SRC
+#+BEGIN_EXAMPLE
+#(ok #(set [1 true #(ignore undefined) foo #(symbol ns/foo)]))
+#+END_EXAMPLE
+
+#+BEGIN_SRC lfe
+(lfedn:parse-str "#{1 true #_ 42 :foo ns/foo}")
+#+END_SRC
+#+BEGIN_EXAMPLE
+#(ok #(set [1 true #(ignore 42) foo #(symbol ns/foo)]))
+#+END_EXAMPLE
+
+*** ~to-string/1~
+#+BEGIN_SRC lfe
+(set `#(ok ,result) (lfedn:parse-str "{:a 42}"))
+#+END_SRC
+#+BEGIN_EXAMPLE
+#(ok #(map [#(a 42)]))
+#+END_EXAMPLE
+
+#+BEGIN_SRC lfe :exports both
+(lfe_io:format("~s~n" `(,(lfedn:to-string result))))
+#+END_SRC
+#+BEGIN_EXAMPLE
+{:a 42}
+ok
+#+END_EXAMPLE
+
+*** ~to-lfe/1~
+#+BEGIN_SRC lfe
+(lfedn:to-lfe (element 2 (lfedn:parse-str "[1  nil  :nil  \"asd\"]")))
+#+END_SRC
+#+BEGIN_EXAMPLE
+[1 undefined undefined #"asd"]
+#+END_EXAMPLE
+
+** API
+*** ~parse-str/1~
+Parse an edn string into an LFE data structure, maintaining all the details from
+the original edn.
+
+*** ~to-string/1~
+Convert the result from ~parse-str/1~ into a edn string.
+
+*** ~to-lfe/1~
+Convert the result from ~parse-str/1~ into an LFE-friendly version.
+
+*** ~to-lfe/2~
+Like ~to-lfe/1~, but given property list of the form ~[#(tag (lambda (tag value
+other-handlers) ...)) ...])~ as the second argument, call ~(handler tag val
+handlers)~ where ~(= handler (proplists:get_value tag handlers))~.
+
+** Type Mappings
+| edn                     | LFE                                          |
+|-------------------------+----------------------------------------------|
+| boolean                 | boolean                                      |
+| char                    | string                                       |
+| float                   | float                                        |
+| integer                 | integer                                      |
+| keyword[fn:keyword-nil] | atom                                         |
+| list                    | list                                         |
+| map                     | tagged list ⇒ ~`#(map [#(,key1 ,val1) ...])~ |
+| ~nil~ (symbol)          | ~nil~ (atom)                                 |
+| set[fn:set-uniqueness]  | tagged list ⇒ ~#(set [...])~                 |
+| string                  | binary string (utf-8)                        |
+| symbol                  | atom                                         |
+| tagged literal          | tagged tuple ⇒ ~`#(tag ,symbol ,value)~      |
+| vector                  | tagged list ⇒ ~#(vector [...])~              |
+
+[fn:keyword-nil] Although keyword ↦ atom and ~nil~ ↦ ~undefined~, ~:nil~ ↦
+~#(keyword nil)~.
+[fn:set-uniqueness] Uniqueness is not checked at parse time.
+
+** To LFE Mappings
+The ~to-lfe~ function transforms incoming data structures to be more
+LFE-friendly, but the results can't be converted back to string without
+transforming again. The default mappings are:
+
+| edn            | LFE                                                  |
+|----------------+------------------------------------------------------|
+| boolean        | boolean                                              |
+| char           | string                                               |
+| float          | float                                                |
+| integer        | integer                                              |
+| keyword        | atom                                                 |
+| list           | list                                                 |
+| map            | [[http://www.erlang.org/doc/man/dict.html][dict]]                                                 |
+| ~nil~ (symbol) | ~undefined~ (atom)                                   |
+| set            | [[http://www.erlang.org/doc/man/sets.html][set]]                                                  |
+| string         | binary string                                        |
+| symbol         | atom                                                 |
+| tagged literal | call registered handler for tag or fail if not found |
+| vector         | list                                                 |
+
+** Authors
+[[https://github.com/marianoguerra][marianoguerra]] (Erlang) and [[https://github.com/yurrriq][yurrriq]] (LFE)
+
+** License
+[[file:LICENSE][MIT]]
