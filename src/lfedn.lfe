@@ -22,11 +22,15 @@
     (error error)))
 
 (defun to-lfe (val)
-  "Convert the result from [`parse-str/1`](#func-parse-str.2F1) into an LFE-friendly version"
+  "Convert the result from [`parse-str/1`](#func-parse-str.2F1)
+into an LFE-friendly version"
   (to-lfe val '[]))
 
 (defun to-lfe
-  "Like [`to-lfe/1`](#func-to-lfe.2F1), but given property list, `handlers`, of the form `[#(tag (lambda (tag val other-handlers) ...)) ...]` as the second argument, call `(handler tag val handlers)` where `(= handler (proplists:get_value tag handlers))`."
+  "Like [`to-lfe/1`](#func-to-lfe.2F1), but given property list, `handlers`,
+of the form `[#(tag (lambda (tag val other-handlers) ...)) ...]`
+as the second argument, call `(handler tag val handlers)`
+where `(= handler (proplists:get_value tag handlers))`."
   ([`#(char    ,char)  _]        (unicode:characters_to_binary `(,char) 'utf8))
   (['#(keyword nil)    _]        'nil)
   ([`#(vector  ,items) handlers] (to-lfe items handlers))
@@ -41,7 +45,8 @@
   ([val _] val))
 
 (defun to-string (edn)
-  "Convert the result from [`parse-str/1`](#func-parse-str.2F1) into an edn string."
+  "Convert the result from [`parse-str/1`](#func-parse-str.2F1)
+into an edn string."
   (lists:reverse (to-string edn '[])))
 
 
