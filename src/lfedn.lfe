@@ -60,7 +60,7 @@ into an edn string."
   ([`#(symbol  ,symbol)   acc] `(,(atom_to_list symbol)          . ,acc))
   (['#(keyword nil)       acc] `(":nil"                          . ,acc))
   ([`#(char   ,c)         acc] `(("\\" . (,c))                   . ,acc))
-  ([`#(vector ,items)     acc] `("[" ,(items->string items)  "[" . ,acc))
+  ([`#(vector ,items)     acc] `("]" ,(items->string items)  "[" . ,acc))
   ([`#(set    ,items)     acc] `("}" ,(items->string items) "#{" . ,acc))
   ([`#(map    ,items)     acc] `("}" ,(kvs->string items)    "{" . ,acc))
   ([items acc] (when (is_list items)) `(")" ,(items->string items) "(" . ,acc))
