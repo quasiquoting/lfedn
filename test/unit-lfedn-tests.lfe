@@ -45,7 +45,7 @@
 
 (deftest singleton-set->string () (check '#(set [1]) "#{1}"))
 
-(deftest vector->string () (check '#(vector [1 foo]) "[1 :foo]"))
+(deftest vector->string () (check '#(vector [1 foo nil]) "[1 :foo nil]"))
 
 (deftest list->string () (check '[1 foo nil] "(1 :foo nil)"))
 
@@ -53,15 +53,6 @@
 
 (deftest map->string () (check '#(map [#(1 foo) #(2 bar) #(3 nil)])
                                "{1 :foo 2 :bar 3 nil}"))
-
-(deftest vector3->string () (check '#(vector [1 foo nil]) "[1 :foo nil]"))
-
-(deftest list3->string () (check '[1 foo nil] "(1 :foo nil)"))
-
-(deftest set3->string () (check '#(set [1 foo nil]) "#{1 :foo nil}"))
-
-(deftest map3->string () (check '#(map [#(1 foo) #(2 bar) #(3 nil)])
-                                "{1 :foo 2 :bar 3 nil}"))
 
 (deftest char->lfe () (ctl '#(char #\a) #"a"))
 

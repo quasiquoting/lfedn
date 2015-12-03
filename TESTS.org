@@ -10,7 +10,8 @@
 
 (include-lib "ltest/include/ltest-macros.lfe")
 #+END_SRC
-
+** ~to-string/2~
+*** Units
 #+BEGIN_SRC lfe
 (deftest char->string () (check '#(char #\$) "\\$"))
 
@@ -38,6 +39,7 @@
 (deftest tagged-value->string () (check '#(tag foo 42) "#foo 42"))
 #+END_SRC
 
+*** Empty collections
 #+BEGIN_SRC lfe
 (deftest empty-vector->string () (check '#(vector []) "[]"))
 
@@ -48,6 +50,7 @@
 (deftest empty-map->string () (check '#(map []) "{}"))
 #+END_SRC
 
+*** Singleton collections
 #+BEGIN_SRC lfe
 (deftest singleton-map->string () (check '#(map [#(true 1)]) "{true 1}"))
 
@@ -58,8 +61,9 @@
 (deftest singleton-set->string () (check '#(set [1]) "#{1}"))
 #+END_SRC
 
+*** Collections of three items
 #+BEGIN_SRC lfe
-(deftest vector->string () (check '#(vector [1 foo]) "[1 :foo]"))
+(deftest vector->string () (check '#(vector [1 foo nil]) "[1 :foo nil]"))
 
 (deftest list->string () (check '[1 foo nil] "(1 :foo nil)"))
 
@@ -69,17 +73,8 @@
                                "{1 :foo 2 :bar 3 nil}"))
 #+END_SRC
 
-#+BEGIN_SRC lfe
-(deftest vector3->string () (check '#(vector [1 foo nil]) "[1 :foo nil]"))
-
-(deftest list3->string () (check '[1 foo nil] "(1 :foo nil)"))
-
-(deftest set3->string () (check '#(set [1 foo nil]) "#{1 :foo nil}"))
-
-(deftest map3->string () (check '#(map [#(1 foo) #(2 bar) #(3 nil)])
-                                "{1 :foo 2 :bar 3 nil}"))
-#+END_SRC
-
+** ~to-lfe/1~
+*** Units
 #+BEGIN_SRC lfe
 (deftest char->lfe () (ctl '#(char #\a) #"a"))
 
@@ -98,6 +93,7 @@
 (deftest string->lfe () (ctl #"asd" #"asd"))
 #+END_SRC
 
+*** Lists
 #+BEGIN_SRC lfe
 (deftest list->lfe () (ctl '[] '[]))
 
@@ -108,6 +104,7 @@
 (deftest list-nested->lfe () (ctl '[1 #(char #\a)] '[1 #"a"]))
 #+END_SRC
 
+*** Vectors
 #+BEGIN_SRC lfe
 (deftest vector->lfe () (ctl '#(vector []) '[]))
 
@@ -118,6 +115,7 @@
 (deftest vector-nested->lfe () (ctl '#(vector [1 #(char #\a)]) '[1 #"a"]))
 #+END_SRC
 
+*** Nested collections, ~:nil~ and symbols
 #+BEGIN_SRC lfe
 (deftest set-nested->lfe () (ctl '#(set [1 #(char #\a) 1]) '[1 #"a"]
                                  #'sets:to_list/1))
@@ -130,6 +128,7 @@
 (deftest symbol->lfe () (ctl '#(symbol foo) '#(symbol foo)))
 #+END_SRC
 
+*** Tagged literals
 #+BEGIN_SRC lfe
 (deftest tag->lfe ()
   (let ((result (lfedn:to-lfe '#(tag foo 42)
@@ -144,7 +143,7 @@
     (catch (`#(,_ #(handler-not-found-for-tag bar) ,_) 'ok))))
 #+END_SRC
 
-Internal functions:
+** Internal functions
 #+BEGIN_SRC lfe
 (defun check (val str)
   (let ((result (lists:flatten (lfedn:to-string val))))
@@ -159,51 +158,18 @@ Internal functions:
     (is-equal expected result)))
 #+END_SRC
 
-#+NAME: run-tests
+** EUnit
+#+NAME: unit-lfedn-tests
 #+BEGIN_SRC lfe :exports results :tangle no
 (c "test/unit-lfedn-tests.lfe")
 (eunit:test 'unit-lfedn-tests '[verbose])
 #+END_SRC
 
-#+RESULTS: run-tests
+#+RESULTS: unit-lfedn-tests
 #+begin_example
 > (eunit:test 'unit-lfedn-tests '[verbose])
 ======================== EUnit ========================
 module 'unit-lfedn-tests'
-  unit-lfedn-tests: unknown-tag-raises-in-to-lfe_test...ok
-  unit-lfedn-tests: tag->lfe_test...ok
-  unit-lfedn-tests: map->lfe_test...ok
-  unit-lfedn-tests: nil-keyword->lfe_test...ok
-  unit-lfedn-tests: symbol->lfe_test...ok
-  unit-lfedn-tests: set-nested->lfe_test...ok
-  unit-lfedn-tests: vector->lfe_test...ok
-  unit-lfedn-tests: vector1->lfe_test...ok
-  unit-lfedn-tests: vector2->lfe_test...ok
-  unit-lfedn-tests: vector-nested->lfe_test...ok
-  unit-lfedn-tests: list->lfe_test...ok
-  unit-lfedn-tests: list1->lfe_test...ok
-  unit-lfedn-tests: list2->lfe_test...ok
-  unit-lfedn-tests: list-nested->lfe_test...ok
-  unit-lfedn-tests: integer->lfe_test...ok
-  unit-lfedn-tests: float->lfe_test...ok
-  unit-lfedn-tests: keyword->lfe_test...ok
-  unit-lfedn-tests: nil->lfe_test...ok
-  unit-lfedn-tests: true->lfe_test...ok
-  unit-lfedn-tests: false->lfe_test...ok
-  unit-lfedn-tests: string->lfe_test...ok
-  unit-lfedn-tests: char->lfe_test...ok
-  unit-lfedn-tests: vector3->string_test...ok
-  unit-lfedn-tests: list3->string_test...ok
-  unit-lfedn-tests: set3->string_test...ok
-  unit-lfedn-tests: map3->string_test...ok
-  unit-lfedn-tests: list->string_test...ok
-  unit-lfedn-tests: set->string_test...ok
-  unit-lfedn-tests: map->string_test...ok
-  unit-lfedn-tests: vector->string_test...ok
-  unit-lfedn-tests: singleton-map->string_test...ok
-  unit-lfedn-tests: singleton-vector->string_test...ok
-  unit-lfedn-tests: singleton-list->string_test...ok
-  unit-lfedn-tests: singleton-set->string_test...ok
   unit-lfedn-tests: char->string_test...ok
   unit-lfedn-tests: nil-keyword->string_test...ok
   unit-lfedn-tests: keyword->string_test...ok
@@ -220,8 +186,438 @@ module 'unit-lfedn-tests'
   unit-lfedn-tests: empty-list->string_test...ok
   unit-lfedn-tests: empty-set->string_test...ok
   unit-lfedn-tests: empty-map->string_test...ok
-  [done in 0.150 s]
+  unit-lfedn-tests: singleton-map->string_test...ok
+  unit-lfedn-tests: singleton-vector->string_test...ok
+  unit-lfedn-tests: singleton-list->string_test...ok
+  unit-lfedn-tests: singleton-set->string_test...ok
+  unit-lfedn-tests: vector->string_test...ok
+  unit-lfedn-tests: list->string_test...ok
+  unit-lfedn-tests: set->string_test...ok
+  unit-lfedn-tests: map->string_test...ok
+  unit-lfedn-tests: char->lfe_test...ok
+  unit-lfedn-tests: integer->lfe_test...ok
+  unit-lfedn-tests: float->lfe_test...ok
+  unit-lfedn-tests: keyword->lfe_test...ok
+  unit-lfedn-tests: nil->lfe_test...ok
+  unit-lfedn-tests: true->lfe_test...ok
+  unit-lfedn-tests: false->lfe_test...ok
+  unit-lfedn-tests: string->lfe_test...ok
+  unit-lfedn-tests: list->lfe_test...ok
+  unit-lfedn-tests: list1->lfe_test...ok
+  unit-lfedn-tests: list2->lfe_test...ok
+  unit-lfedn-tests: list-nested->lfe_test...ok
+  unit-lfedn-tests: vector->lfe_test...ok
+  unit-lfedn-tests: vector1->lfe_test...ok
+  unit-lfedn-tests: vector2->lfe_test...ok
+  unit-lfedn-tests: vector-nested->lfe_test...ok
+  unit-lfedn-tests: set-nested->lfe_test...ok
+  unit-lfedn-tests: map->lfe_test...ok
+  unit-lfedn-tests: nil-keyword->lfe_test...ok
+  unit-lfedn-tests: symbol->lfe_test...ok
+  unit-lfedn-tests: tag->lfe_test...ok
+  unit-lfedn-tests: unknown-tag-raises-in-to-lfe_test...ok
+  [done in 0.138 s]
 =======================================================
-  All 50 tests passed.
+  All 46 tests passed.
+ok
+#+end_example
+
+* erldn lexer tests
+  :PROPERTIES:
+  :tangle:   test/erldn_lexer-tests.lfe
+  :session:  erldn_lexer-tests
+  :END:
+#+BEGIN_SRC lfe
+(defmodule erldn_lexer-tests
+  (behaviour ltest-unit)
+  (export all))
+
+(include-lib "ltest/include/ltest-macros.lfe")
+#+END_SRC
+
+** Integers
+#+BEGIN_SRC lfe
+(deftest integer ()  (check "1" '#(integer 1 1)))
+
+(deftest integer-big () (check "1234" '#(integer 1 1234)))
+#+END_SRC
+
+** Floats
+#+BEGIN_SRC lfe
+(deftest float () (check "1.3" '#(float 1 1.3)))
+
+(deftest float-big () (check "1.234" '#(float 1 1.234)))
+#+END_SRC
+
+** Booleans
+#+BEGIN_SRC lfe
+(deftest bool-true () (check "true" '#(boolean 1 true)))
+
+(deftest bool-false () (check "false" '#(boolean 1 false)))
+
+(deftest bool-nil () (check "nil" '#(nil 1 nil)))
+#+END_SRC
+
+** Strings
+#+BEGIN_SRC lfe
+(deftest string () (check "\"hello\"" '#(string 1 #"hello")))
+
+(deftest empty-string () (check "\"\"" '#(string 1 #"")))
+#+END_SRC
+
+** Sharp
+I'm not sure how to get this one working in LFE...
+#+BEGIN_SRC lfe :tangle no
+(deftest sharp () (check "#" '#(sharp 1 #)))
+#+END_SRC
+
+** Symbols
+#+BEGIN_SRC lfe
+(deftest simple-symbol () (check "foo" '#(symbol 1 foo)))
+
+(deftest slash-symbol () (check "/" '#(symbol 1 /)))
+
+(deftest start-with-slash-symbol () (check "/foo" '#(symbol 1 /foo)))
+
+(deftest ns-keyword () (check ":ns/foo" '#(keyword 1 ns/foo)))
+
+(deftest ns1-keyword ()
+  (check ":org.quasiquoting/lfedn" '#(keyword 1 org.quasiquoting/lfedn)))
+#+END_SRC
+
+** Chars
+#+BEGIN_SRC lfe
+(deftest char () (check "\\c" '#(char 1 #\c)))
+
+(deftest char1 () (check "\\D" '#(char 1 #\D)))
+
+(deftest char2 () (check "\\$" '#(char 1 #\$)))
+
+(deftest char-newline () (check "\\newline" '#(char 1 10)))
+
+(deftest char-tab () (check "\\tab" '#(char 1 9)))
+
+(deftest char-space () (check "\\space" '#(char 1 32)))
+
+(deftest char-return () (check "\\return" '#(char 1 13)))
+
+(deftest char-in-a-string () (check "\"hi \\c !\"" '#(string 1 #"hi \\c !")))
+#+END_SRC
+
+** Ignorance
+I'm not sure how to get this one working in LFE...
+#+BEGIN_SRC lfe :tangle no
+(deftest ignore-token () (check "#_" '#(ignore 1 '#_)))
+#+END_SRC
+
+** Comments
+#+BEGIN_SRC lfe
+(deftest comment (check "1 ; this is a comment \n" '#(integer 1 1)))
+
+(deftest comment-inside-string ()
+  (check "\"; this is NOT a comment\n\""
+         '#(string 1 #"; this is NOT a comment\n")))
+#+END_SRC
+
+** Internal functions
+#+BEGIN_SRC lfe
+(defun check (str expected)
+  (let ((`#(ok [,result] ,_) (lfedn:lex-str str)))
+    (is-equal expected result)))
+#+END_SRC
+
+** EUnit
+#+NAME: erldn_lexer-tests
+#+BEGIN_SRC lfe :exports results :tangle no
+(c "test/erldn_lexer-tests.lfe")
+(eunit:test 'erldn_lexer-tests '[verbose])
+#+END_SRC
+
+#+RESULTS: erldn_lexer-tests
+#+begin_example
+> (eunit:test 'erldn_lexer-tests '[verbose])
+======================== EUnit ========================
+module 'erldn_lexer-tests'
+  erldn_lexer-tests: integer_test...ok
+  erldn_lexer-tests: integer-big_test...ok
+  erldn_lexer-tests: float_test...ok
+  erldn_lexer-tests: float-big_test...ok
+  erldn_lexer-tests: bool-true_test...ok
+  erldn_lexer-tests: bool-false_test...ok
+  erldn_lexer-tests: bool-nil_test...ok
+  erldn_lexer-tests: string_test...ok
+  erldn_lexer-tests: empty-string_test...ok
+  erldn_lexer-tests: simple-symbol_test...ok
+  erldn_lexer-tests: slash-symbol_test...ok
+  erldn_lexer-tests: start-with-slash-symbol_test...ok
+  erldn_lexer-tests: ns-keyword_test...ok
+  erldn_lexer-tests: ns1-keyword_test...ok
+  erldn_lexer-tests: char_test...ok
+  erldn_lexer-tests: char1_test...ok
+  erldn_lexer-tests: char2_test...ok
+  erldn_lexer-tests: char-newline_test...ok
+  erldn_lexer-tests: char-tab_test...ok
+  erldn_lexer-tests: char-space_test...ok
+  erldn_lexer-tests: char-return_test...ok
+  erldn_lexer-tests: char-in-a-string_test...ok
+  erldn_lexer-tests: comment_test...ok
+  erldn_lexer-tests: comment-inside-string_test...ok
+  [done in 0.072 s]
+=======================================================
+  All 24 tests passed.
+ok
+#+end_example
+
+* erldn parser tests
+  :PROPERTIES:
+  :tangle:   test/erldn_parser-tests.lfe
+  :session:  erldn_parser-tests
+  :END:
+#+BEGIN_SRC lfe
+(defmodule erldn_parser-tests
+  (behaviour ltest-unit)
+  (export all))
+
+(include-lib "ltest/include/ltest-macros.lfe")
+#+END_SRC
+
+** Integers
+#+BEGIN_SRC lfe
+(deftest integer ()  (check "1" 1))
+
+(deftest integer-big () (check "1234" 1234))
+#+END_SRC
+
+** Floats
+#+BEGIN_SRC lfe
+(deftest float () (check "1.3" '1.3))
+
+(deftest float-big () (check "1.234" 1.234))
+#+END_SRC
+
+** Booleans
+#+BEGIN_SRC lfe
+(deftest bool-true () (check "true" 'true))
+
+(deftest bool-false () (check "false" 'false))
+
+(deftest bool-nil () (check "nil" 'nil))
+#+END_SRC
+** Strings
+#+BEGIN_SRC lfe
+(deftest string () (check "\"hello\"" #"hello"))
+
+(deftest empty-string () (check "\"\"" #""))
+#+END_SRC
+
+** Lists
+#+BEGIN_SRC lfe
+(deftest empty-list () (check "()" '[]))
+
+(deftest one-item-list () (check "(1)" '[1]))
+
+(deftest two-item-list () (check "(1 true)" '[1 true]))
+
+(deftest three-item-list () (check "(1 true nil)" '[1 true nil]))
+
+(deftest two-item-list-with-commas () (check "(1, true)" '[1 true]))
+
+(deftest three-item-list-with-commas () (check "(1, true nil)" '[1 true nil]))
+
+(deftest nested-list () (check "(1, (true, nil), 1.2)" '[1 [true nil] 1.2]))
+#+END_SRC
+
+** Vectors
+#+BEGIN_SRC lfe
+(deftest empty-vector () (check "[]" '#(vector [])))
+
+(deftest one-item-vector () (check "[1]" '#(vector [1])))
+
+(deftest two-item-vector () (check "[1 true]" '#(vector [1 true])))
+
+(deftest three-item-vector () (check "[1 true nil]" '#(vector [1 true nil])))
+
+(deftest two-item-vector-with-commas () (check "[1, true]" '#(vector [1 true])))
+
+(deftest three-item-vector-with-commas ()
+  (check "[1, true nil]" '#(vector [1 true nil])))
+
+(deftest nested-vector ()
+  (check "[1, (true, nil), 1.2]" '#(vector [1 [true nil] 1.2])))
+#+END_SRC
+
+** Maps
+#+BEGIN_SRC lfe
+(deftest empty-map () (check "{}" '#(map [])))
+
+(deftest one-item-map () (check "{1 true}" '#(map [#(1 true)])))
+
+(deftest two-item-map ()
+  (check "{1 true, false nil}"
+         '#(map [#(1 true) #(false nil)])))
+
+(deftest three-item-map ()
+  (check "{1 true, false nil, \"key\" 42}"
+         '#(map [#(1 true) #(false nil) #(#"key" 42)])))
+
+(deftest nested-map ()
+  (check "{1 (true), false [nil], \"key\" #{42}}"
+         '#(map [#(1      [true])
+                 #(false  #(vector [nil]))
+                 #(#"key" #(set [42]))])))
+#+END_SRC
+
+** Symbols
+#+BEGIN_SRC lfe
+(deftest simple-symbol () (check "foo" '#(symbol foo)))
+
+(deftest slash-symbol () (check "/" '#(symbol /)))
+
+(deftest start-with-slash-symbol () (check "/foo" '#(symbol /foo)))
+
+(deftest ns-symbol () (check "ns/foo" '#(symbol ns/foo)))
+
+(deftest ns1-symbol () (check "org.quasiquoting/lfedn"
+                              '#(symbol org.quasiquoting/lfedn)))
+#+END_SRC
+
+** Keywords
+#+BEGIN_SRC lfe
+(deftest simple-keyword () (check ":foo" 'foo))
+
+(deftest nil-keyword () (check ":nil" '#(keyword nil)))
+
+(deftest stash-keyword () (check ":/" '/))
+
+(deftest start-with-slash-keyword () (check ":/foo" '/foo))
+
+(deftest ns-keyword () (check ":ns/foo" 'ns/foo))
+
+(deftest ns1-keyword ()
+  (check ":org.quasiquoting/lfedn" 'org.quasiquoting/lfedn))
+#+END_SRC
+
+** Tags
+#+BEGIN_SRC lfe
+(deftest simple-tag () (check "#answer 42" '#(tag answer 42)))
+
+(deftest map-tag ()
+  (check "#myapp/Person {:first \"John\" :last \"McCarthy\"}"
+         '#(tag myapp/Person #(map [#(first #"John")
+                                    #(last  #"McCarthy")]))))
+
+(deftest instant ()
+  (check "#inst \"1985-04-12T23:20:50.52Z\""
+         '#(tag inst #"1985-04-12T23:20:50.52Z")))
+
+(deftest uuid ()
+  (check "#uuid \"f81d4fae-7dec-11d0-a765-00a0c91e6bf6\""
+         '#(tag uuid #"f81d4fae-7dec-11d0-a765-00a0c91e6bf6")))
+#+END_SRC
+
+** Ignore
+#+BEGIN_SRC lfe
+(deftest ignore-next () (check "#_ 4" '#(ignore 4)))
+
+(deftest ignore-next-number-no-space ()  (check "#_4" '#(ignore 4)))
+
+(deftest ignore-next-atom-no-space () (check "#_foo" '#(ignore #(symbol foo))))
+#+END_SRC
+
+** Char
+#+BEGIN_SRC lfe
+(deftest char () (check "\\c" '#(char #\c)))
+
+(deftest char1 () (check "\\D" '#(char #\D)))
+
+(deftest char-newline () (check "\\newline" '#(char 10)))
+
+(deftest char-tab () (check "\\tab" '#(char 9)))
+
+(deftest char-space () (check "\\space" '#(char 32)))
+
+(deftest char-return () (check "\\return" '#(char 13)))
+#+END_SRC
+
+** Comment
+#+BEGIN_SRC lfe
+(deftest comment () (check "{1 ; comment \n true}" '#(map [#(1 true)])))
+#+END_SRC
+
+** Internal functions
+#+BEGIN_SRC lfe
+(defun check (str expected)
+  (let ((`#(ok ,result) (lfedn:parse-str str)))
+    (is-equal expected result)))
+#+END_SRC
+
+** EUnit
+#+NAME: erldn_parser-tests
+#+BEGIN_SRC lfe :exports results :tangle no
+(c "test/erldn_parser-tests.lfe")
+(eunit:test 'erldn_parser-tests '[verbose])
+#+END_SRC
+
+#+RESULTS: erldn_parser-tests
+#+begin_example
+> (eunit:test 'erldn_parser-tests '[verbose])
+======================== EUnit ========================
+module 'erldn_parser-tests'
+  erldn_parser-tests: integer_test...[0.004 s] ok
+  erldn_parser-tests: integer-big_test...ok
+  erldn_parser-tests: float_test...ok
+  erldn_parser-tests: float-big_test...ok
+  erldn_parser-tests: bool-true_test...ok
+  erldn_parser-tests: bool-false_test...ok
+  erldn_parser-tests: bool-nil_test...ok
+  erldn_parser-tests: string_test...ok
+  erldn_parser-tests: empty-string_test...ok
+  erldn_parser-tests: empty-list_test...ok
+  erldn_parser-tests: one-item-list_test...ok
+  erldn_parser-tests: two-item-list_test...ok
+  erldn_parser-tests: three-item-list_test...ok
+  erldn_parser-tests: two-item-list-with-commas_test...ok
+  erldn_parser-tests: three-item-list-with-commas_test...ok
+  erldn_parser-tests: nested-list_test...ok
+  erldn_parser-tests: empty-vector_test...ok
+  erldn_parser-tests: one-item-vector_test...ok
+  erldn_parser-tests: two-item-vector_test...ok
+  erldn_parser-tests: three-item-vector_test...ok
+  erldn_parser-tests: two-item-vector-with-commas_test...ok
+  erldn_parser-tests: three-item-vector-with-commas_test...ok
+  erldn_parser-tests: nested-vector_test...ok
+  erldn_parser-tests: empty-map_test...[0.001 s] ok
+  erldn_parser-tests: one-item-map_test...ok
+  erldn_parser-tests: two-item-map_test...ok
+  erldn_parser-tests: three-item-map_test...ok
+  erldn_parser-tests: nested-map_test...ok
+  erldn_parser-tests: simple-symbol_test...ok
+  erldn_parser-tests: slash-symbol_test...ok
+  erldn_parser-tests: start-with-slash-symbol_test...ok
+  erldn_parser-tests: ns-symbol_test...ok
+  erldn_parser-tests: ns1-symbol_test...ok
+  erldn_parser-tests: simple-keyword_test...ok
+  erldn_parser-tests: nil-keyword_test...ok
+  erldn_parser-tests: stash-keyword_test...ok
+  erldn_parser-tests: start-with-slash-keyword_test...ok
+  erldn_parser-tests: ns-keyword_test...ok
+  erldn_parser-tests: ns1-keyword_test...ok
+  erldn_parser-tests: simple-tag_test...ok
+  erldn_parser-tests: map-tag_test...ok
+  erldn_parser-tests: instant_test...ok
+  erldn_parser-tests: uuid_test...ok
+  erldn_parser-tests: ignore-next_test...ok
+  erldn_parser-tests: ignore-next-number-no-space_test...ok
+  erldn_parser-tests: ignore-next-atom-no-space_test...ok
+  erldn_parser-tests: char_test...ok
+  erldn_parser-tests: char1_test...ok
+  erldn_parser-tests: char-newline_test...ok
+  erldn_parser-tests: char-tab_test...ok
+  erldn_parser-tests: char-space_test...ok
+  erldn_parser-tests: char-return_test...ok
+  erldn_parser-tests: comment_test...ok
+  [done in 0.164 s]
+=======================================================
+  All 53 tests passed.
 ok
 #+end_example
