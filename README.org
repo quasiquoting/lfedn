@@ -64,7 +64,7 @@ This project depends upon the follow, which are installed to the
   #+END_SRC
 
 ** Installation
-Just add it to your =rebar.config= [[https://www.rebar3.org/docs/dependencies][~deps~]]:
+Just add it to your =rebar.config= [[https://www.rebar3.org/docs/dependencies][deps]]:
 #+BEGIN_SRC erlang
 {deps,
  [% ...
