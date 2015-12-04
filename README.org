@@ -1,4 +1,40 @@
 * lfedn – edn ↔ lfe
+#+BEGIN_SRC conf :tangle .gitignore :exports none
+# -*- conf -*-
+.rebar3
+_*
+.eunit
+,*.o
+,*.beam
+,*.plt
+,*.swp
+,*.swo
+.erlang.cookie
+ebin
+log
+erl_crash.dump
+.rebar
+_rel
+_deps
+_plugins
+_tdeps
+logs
+_build
+rebar.lock
+.DS_Store
+
+src/erldn_lexer.erl
+src/erldn_parser.erl
+#+END_SRC
+
+#+BEGIN_SRC conf :tangle .gitmodules :exports none
+# -*- conf -*-
+[submodule "doc"]
+path   = doc
+url    = git@github.com:quasiquoting/lfedn.git
+branch = gh-pages
+#+END_SRC
+
 #+BEGIN_SRC yaml :tangle .travis.yml :exports none
 language: erlang
 # http://stackoverflow.com/a/24600210/1793234

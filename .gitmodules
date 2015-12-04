@@ -1,4 +1,5 @@
+# -*- conf -*-
 [submodule "doc"]
-	path = doc
-	url = git@github.com:quasiquoting/lfedn.git
-	branch = gh-pages
+path   = doc
+url    = git@github.com:quasiquoting/lfedn.git
+branch = gh-pages
