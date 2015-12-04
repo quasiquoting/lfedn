@@ -1,4 +1,28 @@
 * lfedn – edn ↔ lfe
+#+BEGIN_SRC yaml :tangle .travis.yml :exports none
+language: erlang
+# http://stackoverflow.com/a/24600210/1793234
+# Handle git submodules yourself
+git:
+  submodules: false
+# Use sed to replace the SSH URL with the public URL, then initialize submodules
+before_install:
+  - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
+  - git submodule update --init --recursive
+install: true
+before_script:
+    - wget https://s3.amazonaws.com/rebar3/rebar3
+    - chmod 755 rebar3
+script:
+  - ./rebar3 eunit
+notifications:
+  recipients:
+    - quasiquoting@gmail.com
+otp_release:
+  - 18.1
+  - 18.0
+#+END_SRC
+
 [[https://travis-ci.org/quasiquoting/lfedn][file:https://travis-ci.org/quasiquoting/lfedn.svg?branch=develop]]
 
 =lfedn= is a parser for the [[https://github.com/edn-format/edn][edn specification]], implemented using [[http://www.erlang.org/doc/man/leex.html][leex]] and [[http://www.erlang.org/doc/man/yecc.html][yecc]]
@@ -20,7 +44,7 @@ need. There is no imposition here.
  [{pre, [{compile, {lfe, compile}}]}]}.
 #+END_SRC
 
-This project assumes you have [[http://www.rebar3.org][=rebar3=]] installed somwhere in your ~$PATH~.
+This project assumes you have [[http://www.rebar3.org][rebar3]] installed somwhere in your ~$PATH~.
 
 This project depends upon the follow, which are installed to the
 ~_build/default/lib~ directory of this project when you run ~rebar3 compile~.
@@ -64,24 +88,25 @@ $ rebar3 eunit -v
 ☛ [[http://quasiquoting.org/lfedn][Documentation]]
 
 ** Type Mappings
-| edn                     | LFE                                          |
-|-------------------------+----------------------------------------------|
-| boolean                 | boolean                                      |
-| char                    | string                                       |
-| float                   | float                                        |
-| integer                 | integer                                      |
-| keyword[fn:keyword-nil] | atom                                         |
-| list                    | list                                         |
-| map                     | tagged list ⇒ ~`#(map [#(,key1 ,val1) ...])~ |
-| ~nil~ (symbol)          | ~nil~ (atom)                                 |
-| set[fn:set-uniqueness]  | tagged list ⇒ ~#(set [...])~                 |
-| string                  | binary string (utf-8)                        |
-| symbol                  | atom                                         |
-| tagged literal          | tagged tuple ⇒ ~`#(tag ,symbol ,value)~      |
-| vector                  | tagged list ⇒ ~#(vector [...])~              |
+| edn            | LFE                                          |
+|----------------+----------------------------------------------|
+| boolean        | boolean                                      |
+| char           | string                                       |
+| float          | float                                        |
+| integer        | integer                                      |
+| keyword¹       | atom                                         |
+| list           | list                                         |
+| map            | tagged list ⇒ ~`#(map [#(,key1 ,val1) ...])~ |
+| ~nil~ (symbol) | ~nil~ (atom)                                 |
+| set²           | tagged list ⇒ ~#(set [...])~                 |
+| string         | binary string (utf-8)                        |
+| symbol         | atom                                         |
+| tagged literal | tagged tuple ⇒ ~`#(tag ,symbol ,value)~      |
+| vector         | tagged list ⇒ ~#(vector [...])~              |
 
-[fn:keyword-nil] Although keyword ↦ atom, ~:nil~ ↦ ~#(keyword nil)~.
-[fn:set-uniqueness] Uniqueness is not checked at parse time.
+¹: Although keyword ↦ atom, ~:nil~ ↦ ~#(keyword nil)~.
+
+²: Uniqueness is not checked at parse time.
 
 ** To LFE Mappings
 The ~to-lfe~ function transforms incoming data structures to be more
@@ -105,8 +130,8 @@ transforming again. The default mappings are:
 | vector         | list                                                 |
 
 ** Authors
-| [[https://github.com/marianoguerra][marianoguerra]] | [[https://github.com/marianoguerra/erldn][erldn]] (Erlang) |
-| [[https://github.com/yurrriq][yurrriq]]       | [[https://github.com/quasiquoting/lfedn][lfedn]] (LFE)    |
+| Mariano Guerra ([[https://github.com/marianoguerra][@marianoguerra]]) | [[https://github.com/marianoguerra/erldn][erldn]] (Erlang) |
+| Eric Bailey ([[https://github.com/yurrriq][@yurrriq]])          | [[https://github.com/quasiquoting/lfedn][lfedn]] (LFE)    |
 
 ** [[file:LICENSE][License]]
 #+BEGIN_SRC txt :tangle LICENSE
