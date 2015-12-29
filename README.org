@@ -89,13 +89,13 @@ This project depends upon the follow, which are installed to the
 - [[https://github.com/rvirding/lfe][LFE]] (Lisp Flavored Erlang; needed only to compile)
   #+BEGIN_SRC erlang
 {deps,
- [{lfe, ".*",
+ [{lfe,
    {git, "git@github.com/rvirding/lfe.git",
     {tag, "0.10.1"}}},
   #+END_SRC
 - [[https://github.com/lfex/ltest][ltest]] (needed only to run the tests)
   #+BEGIN_SRC erlang :padline no
-  {ltest, ".*",
+  {ltest,
    {git, "git@github.com/lfex/ltest.git",
     {tag, "0.7.0"}}}]}.
   #+END_SRC
@@ -105,7 +105,7 @@ Just add it to your =rebar.config= [[https://www.rebar3.org/docs/dependencies][d
 #+BEGIN_SRC erlang
 {deps,
  [% ...
-  {lfedn, ".*",
+  {lfedn,
    {git, "git@github.com:quasiquoting/lfedn.git",
     {tag, "1.2.0"}}}]}.
 #+END_SRC
