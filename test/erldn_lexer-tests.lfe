@@ -22,6 +22,8 @@
 
 (deftest empty-string () (check "\"\"" '#(string 1 #"")))
 
+(deftest sharp () (check "#" '#(sharp 1 |#|)))
+
 (deftest simple-symbol () (check "foo" '#(symbol 1 foo)))
 
 (deftest slash-symbol () (check "/" '#(symbol 1 /)))
@@ -48,6 +50,8 @@
 (deftest char-return () (check "\\return" '#(char 1 13)))
 
 (deftest char-in-a-string () (check "\"hi \\c !\"" '#(string 1 #"hi \\c !")))
+
+(deftest ignore-token () (check "#_" '#(ignore 1 |#_|)))
 
 (deftest comment (check "1 ; this is a comment \n" '#(integer 1 1)))
 

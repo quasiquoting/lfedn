@@ -266,9 +266,8 @@ ok
 #+END_SRC
 
 ** Sharp
-I'm not sure how to get this one working in LFE...
-#+BEGIN_SRC lfe :tangle no
-(deftest sharp () (check "#" '#(sharp 1 #)))
+#+BEGIN_SRC lfe
+(deftest sharp () (check "#" '#(sharp 1 |#|)))
 #+END_SRC
 
 ** Symbols
@@ -305,9 +304,8 @@ I'm not sure how to get this one working in LFE...
 #+END_SRC
 
 ** Ignorance
-I'm not sure how to get this one working in LFE...
-#+BEGIN_SRC lfe :tangle no
-(deftest ignore-token () (check "#_" '#(ignore 1 '#_)))
+#+BEGIN_SRC lfe
+(deftest ignore-token () (check "#_" '#(ignore 1 |#_|)))
 #+END_SRC
 
 ** Comments
